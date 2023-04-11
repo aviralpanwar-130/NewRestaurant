@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<head>
+    <title>My Restaurant</title>
+</head>
+<body>
+    <h2>Panchvati</h2>
+    <div id="mdiv">
+        <form id="fr">
+            <label for="dish">Choose Dish:</label>
+            <select id="dish">
+                <option value="none"></option>
+                <option value="Fried Rice">Fried Rice</option>
+                <option value="Kadhaie Paneer">Kadhaie Paneer</option>
+                <option value="Sahi Paneer">Sahi Paneer</option>
+                <option value="Tandoori Roti">Tandoori Roti</option>
+                <option value="Tawa Roti">Tawa Roti</option>
+            </select>
+            <label for="price">Price:</label>
+            <input id="price" type="number"/>
+            <label for="table">Table:</label>
+            <select id="table">
+                <option value="none"></option>
+                <option value="Table1">Table 1</option>
+                <option value="Table2">Table 2</option>
+                <option value="Table3">Table 3</option>
+            </select>
+            <button type="submit" id="btn1">Add To Bill</button>
+        </form>
+    </div>
+    <div id="Table1"><h2>Table 1:</h2></div><br>
+    <div id="Table2"><h2>Table 2:</h2></div><br>
+    <div id="Table3"><h2>Table 3:</h2></div><br>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let di=document.getElementById('dish');
+        let pr=document.getElementById('price');
+        let tb=document.getElementById('table');
+        let loginform=document.getElementById('fr');
+
+        axios.get(`https://crudcrud.com/api/19a22245d60f4f3fa9523ae77bb5e957/appData`)
+        .then((res)=>{
+            let arr = res.data;
+            for(let i=0;i<arr.length;i++){
+                let object=arr[i];
+                create(object);
+            }
+        })
+        .catch((err)=>console.log(err));
+
+        function create(obj){
+            let currDiv = document.getElementById(`${obj.table}`);
+            
+            let li = document.createElement('li');
+            li.id=obj._id;
+
+            let node = document.createTextNode(`Dish Ordered: ${obj.dish},
+            Dish Price: ${obj.price}, Table: ${obj.table}`);
+
+            let delbtn = document.createElement('Button');
+            delbtn.value='delete';
+            delbtn.textContent='Delete';
+            
+            li.append(node);
+            li.append(delbtn);
+            currDiv.appendChild(li);
+
+            delbtn.onclick=(event)=>{
+                let pel = event.target.parentElement;
+                let pepe = pel.parentElement;
+                pepe.removeChild(pel);
+
+                axios.delete(`https://crudcrud.com/api/19a22245d60f4f3fa9523ae77bb5e957/appData/${li.id}`)
+                .then((res)=>console.log('Deleted Successfully'))
+                .catch((err)=>console.log(err));
+            }
+        }
+
+        loginform.addEventListener('submit',(e)=>{
+            e.preventDefault();
+            let newObject={
+                dish:di.value,
+                price:pr.value,
+                table:tb.value
+            }
+            axios.post('https://crudcrud.com/api/19a22245d60f4f3fa9523ae77bb5e957/appData',newObject)
+            .then((res)=>{
+                console.log('Data Posted')
+                axios.get('https://crudcrud.com/api/19a22245d60f4f3fa9523ae77bb5e957/appData')
+                .then((res)=>{
+                    let arr2 = res.data;
+                    let ind=arr2.length-1;
+                    let newAxiosObject= arr2[ind];
+                    create(newAxiosObject);
+                })
+                .catch((err)=>console.log(err));
+            })
+            .catch((err)=>console.log(err))
+            
+
+            di.value="";
+            pr.value="";
+            tb.value="";
+        })
+
+    </script>
+
+</body>
+</html>
